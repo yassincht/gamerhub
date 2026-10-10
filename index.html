@@ -86,6 +86,7 @@ footer{text-align:center;padding:32px;color:var(--mute);border-top:1px solid var
 
 <section id="groups">
   <div class="row" style="justify-content:space-between"><div><h2>Your Groups</h2><p class="sub">Create groups with your friends, build your team and compete together.</p></div><button class="btn" id="newGroup">+ Create Group</button></div>
+  <div class="row"><input id="joinIn" placeholder="Group code" aria-label="Group code"><button class="chip" id="joinBtn">Join with code</button></div>
   <div class="list" id="groupList"></div>
 </section>
 
@@ -99,7 +100,7 @@ footer{text-align:center;padding:32px;color:var(--mute);border-top:1px solid var
 
 <section id="profile">
   <h2>Your Games. Your Stats.</h2>
-  <p class="sub">Connect your gaming platforms to show your games, playtime and ranks. The buttons are ready for real OAuth/API integration; this standalone file uses local demo data until a backend is connected.</p>
+  <p class="sub">Add your username for each platform so friends can find you. Live rank and playtime need each platform's own API and a server, so they are not included yet.</p>
   <div class="profile">
     <div class="card">
       <div class="row"><div class="avatar" id="av">G</div><div><h3 id="pName">Guest</h3><div class="meta" id="pSub">Create an account to build your profile.</div></div></div>
@@ -109,7 +110,7 @@ footer{text-align:center;padding:32px;color:var(--mute);border-top:1px solid var
     </div>
     <div class="card">
       <h3>Connected Library</h3>
-      <div class="meta">Games, playtime and available rank data.</div>
+      <div class="meta">Your platform usernames.</div>
       <div class="list" id="library"></div>
       <div class="meta" id="libCount">0 connected</div>
     </div>
@@ -128,15 +129,15 @@ footer{text-align:center;padding:32px;color:var(--mute);border-top:1px solid var
 
 <footer>© 2026 GAMERHUB · Play · Compete · Share</footer>
 
-<div class="modal" id="acctModal"><div class="box" role="dialog" aria-label="Create account">
-  <h2 style="font-size:26px">Create your GamerHub account</h2>
+<div class="modal" id="acctModal"><div class="box" role="dialog" aria-label="Account">
+  <h2 style="font-size:26px" id="acctTitle">Join GamerHub</h2>
   <div class="note">Your username is unique. Another GamerHub account cannot use it.</div>
-  <input id="uname" placeholder="Username" maxlength="20" aria-label="Username">
-  <input id="email" type="email" placeholder="Email (optional)" aria-label="Email">
+  <input id="uname" placeholder="Username (new accounts)" maxlength="20" aria-label="Username">
+  <input class="ao" id="email" type="email" placeholder="Email" aria-label="Email">
+  <input class="ao" id="pass" type="password" placeholder="Password (6+ characters)" aria-label="Password">
   <div class="note" id="acctErr" style="color:var(--b)"></div>
-  <div class="row"><button class="btn alt" data-close>Cancel</button><button class="btn" id="saveAcct">Create Account</button></div>
-  <button class="chip" id="googleBtn">Continue with Google</button>
-  <div class="note">Demo mode: account data stays in this browser. Real global username uniqueness, Google sign-in, Steam/Epic OAuth and live game stats require a secure backend.</div>
+  <div class="row"><button class="btn alt" data-close>Cancel</button><button class="btn" id="saveAcct">Create Account</button><button class="btn alt ao" id="signIn">Sign in</button></div>
+  <button class="chip ao" id="googleBtn">Continue with Google</button>
 </div></div>
 
 <div class="modal" id="groupModal"><div class="box" role="dialog" aria-label="Create group">
@@ -146,76 +147,173 @@ footer{text-align:center;padding:32px;color:var(--mute);border-top:1px solid var
   <div class="row"><button class="btn alt" data-close>Cancel</button><button class="btn" id="saveGroup">Create Group</button></div>
 </div></div>
 
-<script>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,GoogleAuthProvider,signInWithPopup,signOut}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import{getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,addDoc,collection,query,where,onSnapshot,runTransaction,arrayUnion,arrayRemove,deleteField}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ===== PASTE YOUR FIREBASE CONFIG HERE ===== */
+const CFG={apiKey:"AIzaSyBINq5sW6IgOoBg7KL_XSt64Dhh4ZBpOuk",authDomain:"gamerhub-9de59.firebaseapp.com",projectId:"gamerhub-9de59",appId:"1:730386226898:web:e6d06dd34a627ba513570b"};
+/* =========================================== */
+
 const $=s=>document.querySelector(s);
 const G=`FPS / PvP:Valorant,Counter-Strike 2,Call of Duty: Warzone,Apex Legends,Overwatch 2,Rainbow Six Siege,Fortnite,PUBG,Halo Infinite,Battlefield 2042,Destiny 2,Escape from Tarkov,Team Fortress 2,Paladins,Splitgate,The Finals,Marvel Rivals,XDefiant,Deadlock,Warframe|MOBA / Strategy:League of Legends,Dota 2,Smite,Heroes of the Storm,Pokémon Unite,Mobile Legends,Honor of Kings,Wild Rift,StarCraft II,Age of Empires IV,Clash Royale,Teamfight Tactics,Hearthstone,Civilization VI,Total War: Warhammer III,Brawl Stars,Awesomenauts,Arena of Valor,Supervive,Predecessor|Fighting:Street Fighter 6,Tekken 8,Mortal Kombat 1,Super Smash Bros. Ultimate,Guilty Gear Strive,Dragon Ball FighterZ,Soulcalibur VI,Brawlhalla,Granblue Fantasy Versus,Killer Instinct,Virtua Fighter 5,Multiversus,Fatal Fury: City of the Wolves,Under Night In-Birth,BlazBlue Cross Tag,Skullgirls,Samurai Shodown,The King of Fighters XV,Injustice 2,Rivals of Aether|Sports / Racing:EA Sports FC 25,Rocket League,NBA 2K25,Madden NFL 25,Forza Horizon 5,Gran Turismo 7,F1 24,iRacing,Mario Kart 8 Deluxe,eFootball,NHL 25,Trackmania,Assetto Corsa,MotoGP 24,Riders Republic,WRC Generations,Tony Hawk's Pro Skater 1+2,Wii Sports,Golf With Your Friends,Lethal League Blaze|Other:Minecraft,Roblox,GTA Online,Among Us,Fall Guys,Genshin Impact,World of Warcraft,Final Fantasy XIV,Elden Ring,Baldur's Gate 3,Stardew Valley,Terraria,Palworld,Lethal Company,Helldivers 2,Sea of Thieves,Rust,ARK: Survival Evolved,Phasmophobia,Hades II`;
 const games=G.split('|').flatMap(c=>{const[k,v]=c.split(':');return v.split(',').map(n=>({n,c:k}))});
 const plat={'FPS / PvP':'PC · Console','MOBA / Strategy':'PC · Mobile','Fighting':'PC · Console','Sports / Racing':'PC · Console','Other':'PC · Console · Mobile'};
 const P=['Steam','Epic Games','Riot Games','Xbox','PlayStation','Discord'];
-const D={user:null,favs:[],friends:[],groups:[],clips:{},conn:[]};
-try{Object.assign(D,JSON.parse(localStorage.getItem('gh')||'{}'))}catch(e){}
-const save=()=>{try{localStorage.setItem('gh',JSON.stringify(D))}catch(e){}};
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let favOnly=false;
 
-function renderGames(){
-  const c=$('#cat').value,q=$('#q').value.toLowerCase();
-  const list=games.filter(g=>(!c||g.c===c)&&(!q||g.n.toLowerCase().includes(q))&&(!favOnly||D.favs.includes(g.n)));
-  $('#count').textContent=games.length+' games';
-  $('#favCount').textContent=D.favs.length+' favorite games';
-  $('#showFav').textContent=favOnly?'Show All':'Show Favorites';
-  $('#gameGrid').innerHTML=list.length?list.map(g=>{
-    const on=D.favs.includes(g.n),clip=D.clips[g.n];
-    return `<div class="card"><h3>${esc(g.n)}</h3><div class="meta">${g.c}<br>Play on: ${plat[g.c]}</div>${clip?`<a class="meta" href="${esc(clip)}" target="_blank" rel="noopener">▶ Your clip</a>`:''}
-    <div class="tools"><button class="chip fav ${on?'on':''}" data-fav="${esc(g.n)}" aria-pressed="${on}">★ ${on?'Favorited':'Favorite'}</button><button class="chip" data-share="${esc(g.n)}">Share</button><button class="chip" data-clip="${esc(g.n)}">Add clip</button></div></div>`}).join(''):'<div class="empty">No games to show.</div>';
-}
-function renderLists(){
-  $('#groupList').innerHTML=D.groups.length?D.groups.map((g,i)=>`<div class="item"><span>${esc(g)}</span><button class="chip" data-delg="${i}">Remove</button></div>`).join(''):'<div class="empty">No groups yet. Create one to start your team.</div>';
-  $('#friendList').innerHTML=D.friends.length?D.friends.map((f,i)=>`<div class="item"><span>${esc(f)}</span><button class="chip" data-delf="${i}">Remove</button></div>`).join(''):'<div class="empty">No friends added yet.</div>';
-  $('#plats').innerHTML=P.map(p=>`<button class="chip" data-plat="${p}">${D.conn.includes(p)?'✓ ':''}${p}</button>`).join('');
-  $('#library').innerHTML=D.conn.length?D.conn.map(p=>`<div class="item"><span>${p}</span><span class="meta">Demo data · connect a backend for live stats</span></div>`).join(''):'<div class="empty">Nothing connected yet.</div>';
-  $('#libCount').textContent=D.conn.length+' connected';
-}
-function renderUser(){
-  const u=D.user;
-  $('#who').textContent=u?u.name:'Guest · No account added';
-  $('#acctBtn').textContent=u?'Sign out':'Create Account';
-  $('#av').textContent=u?u.name[0].toUpperCase():'G';
-  $('#pName').textContent=u?u.name:'Guest';
-  $('#pSub').textContent=u?D.favs.length+' favorite games · '+D.friends.length+' friends · '+D.groups.length+' groups':'Create an account to build your profile.';
-  $('#pNote').textContent=u?'Demo account stored in this browser.':'No GamerHub account is connected.';
-}
-const all=()=>{renderGames();renderLists();renderUser();save()};
+const OK=!CFG.apiKey.startsWith("PASTE");
+let auth,db,me=null,prof=null,fr=[],gr=[],unsubs=[],busy=false,favOnly=false;
+if(OK){const app=initializeApp(CFG);auth=getAuth(app);db=getFirestore(app)}
+else{const b=document.createElement('div');b.style.cssText='background:var(--b);color:#fff;padding:10px 5vw;font-size:14px';b.textContent='Backend not connected: paste your Firebase config at the top of the script in index.html to turn on accounts, friends and groups.';document.body.prepend(b)}
+
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const msg=x=>({'auth/email-already-in-use':'That email already has an account. Use Sign in.','auth/invalid-credential':'Wrong email or password.','auth/weak-password':'Password needs at least 6 characters.','auth/invalid-email':'Enter a valid email.','taken':'That username is taken.','auth/popup-closed-by-user':''}[x.code]??x.message);
 const open=id=>{$(id).classList.add('open');const i=$(id).querySelector('input');i&&i.focus()};
 const close=()=>document.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'));
+const ref=(c,i)=>doc(db,c,i);
+const mine=()=>ref('users',me.uid);
+function claimMode(on){document.querySelectorAll('.ao').forEach(e=>e.style.display=on?'none':'');$('#saveAcct').textContent=on?'Save username':'Create Account';$('#acctTitle').textContent=on?'Choose your username':'Join GamerHub'}
+function gate(){
+  if(!OK){alert('Add your Firebase config in index.html first.');return true}
+  if(!me||!prof){claimMode(!!me);$('#acctErr').textContent=me?'':'Sign in to use this.';open('#acctModal');return true}
+  return false;
+}
 
-document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-fav],[data-share],[data-clip],[data-delg],[data-delf],[data-plat],[data-close]');
+function renderGames(){
+  const f=prof?prof.favs:[],cl=prof?prof.clips:{};
+  const c=$('#cat').value,q=$('#q').value.toLowerCase();
+  const list=games.map((g,i)=>({...g,i})).filter(g=>(!c||g.c===c)&&(!q||g.n.toLowerCase().includes(q))&&(!favOnly||f.includes(g.n)));
+  $('#count').textContent=games.length+' games';
+  $('#favCount').textContent=f.length+' favorite games';
+  $('#showFav').textContent=favOnly?'Show All':'Show Favorites';
+  $('#gameGrid').innerHTML=list.length?list.map(g=>{
+    const on=f.includes(g.n),clip=cl[g.i];
+    return `<div class="card"><h3>${esc(g.n)}</h3><div class="meta">${g.c}<br>Play on: ${plat[g.c]}</div>${clip?`<a class="meta" href="${esc(clip)}" target="_blank" rel="noopener">▶ Your clip</a>`:''}
+    <div class="tools"><button class="chip fav ${on?'on':''}" data-fav="${esc(g.n)}" aria-pressed="${on}">★ ${on?'Favorited':'Favorite'}</button><button class="chip" data-share="${esc(g.n)}">Share</button><button class="chip" data-clip="${g.i}">Add clip</button></div></div>`}).join(''):'<div class="empty">No games to show.</div>';
+}
+function renderLists(){
+  const h=prof?prof.handles:{};
+  $('#groupList').innerHTML=gr.length?gr.map(g=>`<div class="item"><span><b>${esc(g.name)}</b><br><span class="meta">${g.memberNames.map(esc).join(', ')} · code: ${g.id}</span></span><span class="row"><button class="chip" data-code="${g.id}">Copy code</button><button class="chip" data-leave="${g.id}">${g.owner===me.uid?'Delete':'Leave'}</button></span></div>`).join(''):'<div class="empty">'+(me?'No groups yet. Create one or join with a code.':'Sign in to create or join groups.')+'</div>';
+  $('#friendList').innerHTML=fr.length?fr.map(f=>{
+    const o=f.users.find(u=>u!==me.uid),n=esc(f.names[o]);
+    if(f.status==='accepted')return `<div class="item"><span>${n}</span><button class="chip" data-delfr="${f.id}">Remove</button></div>`;
+    if(f.from===me.uid)return `<div class="item"><span>${n} <span class="meta">request sent</span></span><button class="chip" data-delfr="${f.id}">Cancel</button></div>`;
+    return `<div class="item"><span>${n} <span class="meta">wants to be friends</span></span><span class="row"><button class="chip" data-acc="${f.id}">Accept</button><button class="chip" data-delfr="${f.id}">Decline</button></span></div>`}).join(''):'<div class="empty">'+(me?'No friends yet. Add someone by username.':'Sign in to add friends.')+'</div>';
+  $('#plats').innerHTML=P.map((p,i)=>`<button class="chip" data-plat="${i}">${h[i]?'✓ ':''}${p}</button>`).join('');
+  const have=P.map((p,i)=>h[i]?`<div class="item"><span>${p}</span><span class="meta">${esc(h[i])}</span></div>`:'').join('');
+  $('#library').innerHTML=have||'<div class="empty">Nothing added yet.</div>';
+  $('#libCount').textContent=P.filter((p,i)=>h[i]).length+' added';
+}
+function renderUser(){
+  const n=prof?prof.username:null;
+  $('#who').textContent=n||(me?'Choose a username':'Guest · No account added');
+  $('#acctBtn').textContent=me?'Sign out':'Sign in / Join';
+  $('#av').textContent=n?n[0].toUpperCase():'G';
+  $('#pName').textContent=n||'Guest';
+  $('#pSub').textContent=n?prof.favs.length+' favorite games · '+fr.filter(f=>f.status==='accepted').length+' friends · '+gr.length+' groups':'Create an account to build your profile.';
+  $('#pNote').textContent=n?'Signed in. Your data is saved to your account.':'No GamerHub account is connected.';
+}
+const all=()=>{renderGames();renderLists();renderUser()};
+
+if(OK)onAuthStateChanged(auth,u=>{
+  unsubs.forEach(f=>f());unsubs=[];me=u;prof=null;fr=[];gr=[];
+  if(u){
+    unsubs.push(onSnapshot(mine(),s=>{
+      if(s.exists()){prof={favs:[],clips:{},handles:{},...s.data()};$('#acctModal').classList.remove('open')}
+      else if(!busy){claimMode(true);open('#acctModal')}
+      all();
+    }));
+    unsubs.push(onSnapshot(query(collection(db,'friendships'),where('users','array-contains',u.uid)),s=>{fr=s.docs.map(d=>({id:d.id,...d.data()}));all()}));
+    unsubs.push(onSnapshot(query(collection(db,'groups'),where('members','array-contains',u.uid)),s=>{gr=s.docs.map(d=>({id:d.id,...d.data()}));all()}));
+  }
+  all();
+});
+
+async function claim(user,name){
+  await runTransaction(db,async t=>{
+    const r=ref('usernames',name.toLowerCase());
+    if((await t.get(r)).exists())throw{code:'taken'};
+    t.set(r,{uid:user.uid});
+    t.set(ref('users',user.uid),{username:name,favs:[],clips:{},handles:{}});
+  });
+}
+$('#saveAcct').onclick=async()=>{
+  const n=$('#uname').value.trim(),err=$('#acctErr');err.textContent='';
+  if(!OK){err.textContent='Backend not connected yet.';return}
+  if(!/^[\w.-]{3,20}$/.test(n)){err.textContent='Username: 3–20 letters, numbers, dots, dashes or underscores.';return}
+  busy=true;
+  try{
+    if((await getDoc(ref('usernames',n.toLowerCase()))).exists())throw{code:'taken'};
+    if(me&&!prof)await claim(me,n);
+    else{
+      const c=await createUserWithEmailAndPassword(auth,$('#email').value.trim(),$('#pass').value);
+      try{await claim(c.user,n)}catch(x){await c.user.delete();throw x}
+    }
+  }catch(x){err.textContent=msg(x)}
+  busy=false;
+};
+$('#signIn').onclick=async()=>{
+  const err=$('#acctErr');err.textContent='';
+  if(!OK){err.textContent='Backend not connected yet.';return}
+  try{await signInWithEmailAndPassword(auth,$('#email').value.trim(),$('#pass').value)}catch(x){err.textContent=msg(x)}
+};
+$('#googleBtn').onclick=async()=>{
+  const err=$('#acctErr');err.textContent='';
+  if(!OK){err.textContent='Backend not connected yet.';return}
+  try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(x){err.textContent=msg(x)}
+};
+$('#acctBtn').onclick=()=>{if(me)signOut(auth);else{claimMode(false);$('#acctErr').textContent='';open('#acctModal')}};
+
+document.addEventListener('click',async e=>{
   if(e.target.classList.contains('modal'))close();
-  if(!t)return;
-  const d=t.dataset;
-  if(d.fav){const i=D.favs.indexOf(d.fav);i<0?D.favs.push(d.fav):D.favs.splice(i,1);all()}
-  else if(d.share){const txt='Check out '+d.share+' on GamerHub!';(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>t.textContent='Copied!').catch(()=>t.textContent='Copy failed')}
-  else if(d.clip){const u=prompt('Paste a link to your clip for '+d.clip+':');if(u&&/^https?:\/\//i.test(u)){D.clips[d.clip]=u;all()}else if(u)alert('Enter a link that starts with http:// or https://')}
-  else if(d.delg!==undefined){D.groups.splice(+d.delg,1);all()}
-  else if(d.delf!==undefined){D.friends.splice(+d.delf,1);all()}
-  else if(d.plat){const i=D.conn.indexOf(d.plat);i<0?D.conn.push(d.plat):D.conn.splice(i,1);all()}
-  else if(d.close!==undefined)close();
+  const t=e.target.closest('[data-fav],[data-share],[data-clip],[data-leave],[data-code],[data-acc],[data-delfr],[data-plat],[data-close]');
+  if(!t)return;const d=t.dataset;
+  try{
+    if(d.close!==undefined)close();
+    else if(d.share){await navigator.clipboard.writeText('Check out '+d.share+' on GamerHub!');t.textContent='Copied!'}
+    else if(d.code){await navigator.clipboard.writeText(d.code);t.textContent='Copied!'}
+    else if(gate())return;
+    else if(d.fav!==undefined)await updateDoc(mine(),{favs:prof.favs.includes(d.fav)?arrayRemove(d.fav):arrayUnion(d.fav)});
+    else if(d.clip!==undefined){const u=prompt('Paste a link to your clip (YouTube, Twitch, Medal, etc.):');if(u&&/^https?:\/\//i.test(u.trim()))await updateDoc(mine(),{['clips.'+d.clip]:u.trim()});else if(u)alert('Enter a link starting with http:// or https://')}
+    else if(d.plat!==undefined){const h=prompt('Your '+P[d.plat]+' username or profile link (leave empty to remove):',prof.handles[d.plat]||'');if(h===null)return;await updateDoc(mine(),{['handles.'+d.plat]:h.trim()?h.trim().slice(0,100):deleteField()})}
+    else if(d.acc)await updateDoc(ref('friendships',d.acc),{status:'accepted'});
+    else if(d.delfr)await deleteDoc(ref('friendships',d.delfr));
+    else if(d.leave){const g=gr.find(x=>x.id===d.leave);if(g.owner===me.uid)await deleteDoc(ref('groups',g.id));else await updateDoc(ref('groups',g.id),{members:arrayRemove(me.uid),memberNames:arrayRemove(prof.username)})}
+  }catch(x){alert(msg(x))}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 $('#cat').onchange=$('#q').oninput=renderGames;
 $('#showFav').onclick=()=>{favOnly=!favOnly;renderGames()};
 $('#favLink').onclick=()=>{favOnly=true;renderGames()};
-$('#acctBtn').onclick=()=>{if(D.user){D.user=null;all()}else{$('#acctErr').textContent='';open('#acctModal')}};
-$('#saveAcct').onclick=()=>{
-  const n=$('#uname').value.trim();
-  if(!/^[\w.-]{3,20}$/.test(n)){$('#acctErr').textContent='Use 3–20 letters, numbers, dots, dashes or underscores.';return}
-  D.user={name:n,email:$('#email').value.trim()};close();all();
+$('#newGroup').onclick=()=>{if(!gate())open('#groupModal')};
+$('#saveGroup').onclick=async()=>{
+  if(gate())return;const n=$('#gname').value.trim();if(!n)return;
+  try{await addDoc(collection(db,'groups'),{name:n,owner:me.uid,members:[me.uid],memberNames:[prof.username]});$('#gname').value='';close()}catch(x){alert(msg(x))}
 };
-$('#googleBtn').onclick=()=>{$('#acctErr').textContent='Google sign-in needs a backend. Create a demo account with a username instead.'};
-$('#newGroup').onclick=()=>open('#groupModal');
-$('#saveGroup').onclick=()=>{const n=$('#gname').value.trim();if(!n)return;D.groups.push(n);$('#gname').value='';close();all()};
-$('#addFriend').onclick=()=>{const n=$('#friendIn').value.trim();if(n&&!D.friends.includes(n)){D.friends.push(n);$('#friendIn').value='';all()}};
+$('#joinBtn').onclick=async()=>{
+  if(gate())return;const c=$('#joinIn').value.trim();if(!c)return;
+  try{
+    const s=await getDoc(ref('groups',c));
+    if(!s.exists()){alert('No group with that code.');return}
+    if(s.data().members.includes(me.uid)){alert("You're already in this group.");return}
+    await updateDoc(ref('groups',c),{members:arrayUnion(me.uid),memberNames:arrayUnion(prof.username)});$('#joinIn').value='';
+  }catch(x){alert(msg(x))}
+};
+$('#addFriend').onclick=async()=>{
+  if(gate())return;
+  const n=$('#friendIn').value.trim().toLowerCase();if(!n)return;
+  try{
+    if(n===prof.username.toLowerCase()){alert("That's you.");return}
+    const s=await getDoc(ref('usernames',n));
+    if(!s.exists()){alert('No GamerHub user with that username.');return}
+    const o=s.data().uid,id=[me.uid,o].sort().join('_');
+    if(fr.some(f=>f.id===id)){alert('Already friends, or a request is pending.');return}
+    const os=await getDoc(ref('users',o));
+    await setDoc(ref('friendships',id),{users:[me.uid,o],names:{[me.uid]:prof.username,[o]:os.data().username},from:me.uid,status:'pending'});
+    $('#friendIn').value='';
+  }catch(x){alert(msg(x))}
+};
 $('#friendIn').onkeydown=e=>{if(e.key==='Enter')$('#addFriend').click()};
 all();
 </script>
