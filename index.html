@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GamerHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#120f26;--bg2:#1c1840;--ink:#f1eeff;--mute:#a9a3d6;--a:#2de2e6;--b:#ff3d81;--line:#342e66;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme=light]{--bg:#f5f3ff;--bg2:#fff;--ink:#1a1540;--mute:#5b5690;--a:#007f86;--b:#d41e63;--line:#d6d0f5}
+@media(prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#f5f3ff;--bg2:#fff;--ink:#1a1540;--mute:#5b5690;--a:#007f86;--b:#d41e63;--line:#d6d0f5}}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,sans-serif}
+h1,h2,h3,.logo{font-family:'Chakra Petch',system-ui,sans-serif;margin:0}
+a{color:inherit;text-decoration:none}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:14px;padding:12px 5vw;background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.logo{font-weight:700;font-size:20px;letter-spacing:.06em;margin-right:auto;color:var(--a)}
+.chip{padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg2);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.chip:hover,button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.btn{padding:11px 22px;border-radius:6px;border:0;font:700 15px 'Chakra Petch',sans-serif;cursor:pointer;background:var(--b);color:#fff}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--a)}
+section{padding:72px 5vw;max-width:1100px;margin:auto}
+#home{min-height:80vh;display:flex;flex-direction:column;justify-content:center}
+#home h1{font-size:clamp(40px,9vw,92px);line-height:1;max-width:11ch}
+#home h1 span{color:var(--b)}
+.lead{color:var(--mute);max-width:56ch;margin:20px 0 28px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+h2{font-size:clamp(28px,5vw,44px);margin-bottom:8px}
+.sub{color:var(--mute);max-width:60ch;margin:0 0 24px}
+input,select{padding:10px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg2);color:var(--ink);font:inherit;max-width:100%}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:20px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.card h3{font-size:17px}.meta{color:var(--mute);font-size:13px}
+.tools{display:flex;gap:6px;margin-top:auto;flex-wrap:wrap}
+.tools button{padding:5px 9px;font-size:13px}
+.fav{color:var(--mute)}.fav.on{color:#ffc933;border-color:#ffc933}
+.list{display:grid;gap:10px;margin-top:14px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.empty{color:var(--mute);padding:14px 0}
+.profile{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.avatar{width:64px;height:64px;border-radius:50%;background:var(--b);display:grid;place-items:center;font:700 28px 'Chakra Petch',sans-serif;color:#fff}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.modal{position:fixed;inset:0;background:#000a;display:none;place-items:center;z-index:9;padding:16px}
+.modal.open{display:grid}
+.box{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:24px;width:min(440px,100%);display:grid;gap:12px}
+.note{font-size:13px;color:var(--mute)}
+footer{text-align:center;padding:32px;color:var(--mute);border-top:1px solid var(--line)}
+#splash{position:fixed;inset:0;background:var(--bg);z-index:20;display:grid;place-items:center;text-align:center;animation:out .6s 1.6s forwards}
+#splash h1{font-size:clamp(40px,10vw,90px);color:var(--a);letter-spacing:.08em}
+@keyframes out{to{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){#splash{animation-duration:.01s;animation-delay:.2s}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div id="splash"><div><div class="meta">WELCOME TO</div><h1>GAMERHUB</h1><div class="meta">Play. Compete. Improve.</div></div></div>
+
+<nav>
+  <a class="logo" href="#home">GAMERHUB</a>
+  <span id="who" class="meta">Guest · No account added</span>
+  <button class="chip" id="acctBtn">Create Account</button>
+  <a class="chip" href="#profile">🎮 My Gaming Profile</a>
+  <a class="chip" href="#friends">👥 Friends</a>
+  <a class="chip" href="#groups">👥 My Groups</a>
+  <a class="chip" href="#games" id="favLink">★ Favorite Games</a>
+</nav>
+
+<section id="home">
+  <div class="meta">Your gaming journey</div>
+  <h1>Play. Compete. Become <span>better.</span></h1>
+  <p class="lead">Choose your favorite games, upload your best clips, show off your rank and score, create groups, add friends and compete in whatever game you love.</p>
+  <div class="row"><a class="btn" href="#games">Explore Games</a><a class="btn alt" href="#groups">Create a Group</a></div>
+</section>
+
+<section id="games">
+  <h2>Choose Your Games</h2>
+  <p class="sub">Mark games as favorites, see where you can play them, share them with friends and attach your best clips.</p>
+  <div class="row">
+    <span class="meta" id="count"></span>
+    <select id="cat"><option value="">All Categories</option><option>FPS / PvP</option><option>MOBA / Strategy</option><option>Fighting</option><option>Sports / Racing</option><option>Other</option></select>
+    <input id="q" placeholder="Search games" aria-label="Search games">
+    <button class="chip" id="showFav">Show Favorites</button>
+    <span class="meta" id="favCount"></span>
+  </div>
+  <div class="grid" id="gameGrid"></div>
+</section>
+
+<section id="groups">
+  <div class="row" style="justify-content:space-between"><div><h2>Your Groups</h2><p class="sub">Create groups with your friends, build your team and compete together.</p></div><button class="btn" id="newGroup">+ Create Group</button></div>
+  <div class="list" id="groupList"></div>
+</section>
+
+<section id="friends">
+  <h2>Friends</h2>
+  <p class="sub">Add your friends and keep your gaming community in one place.</p>
+  <div class="row"><input id="friendIn" placeholder="Friend's username" aria-label="Friend's username"><button class="btn" id="addFriend">Add</button></div>
+  <h3 style="margin-top:24px">Your Friends</h3>
+  <div class="list" id="friendList"></div>
+</section>
+
+<section id="profile">
+  <h2>Your Games. Your Stats.</h2>
+  <p class="sub">Connect your gaming platforms to show your games, playtime and ranks. The buttons are ready for real OAuth/API integration; this standalone file uses local demo data until a backend is connected.</p>
+  <div class="profile">
+    <div class="card">
+      <div class="row"><div class="avatar" id="av">G</div><div><h3 id="pName">Guest</h3><div class="meta" id="pSub">Create an account to build your profile.</div></div></div>
+      <div class="note" id="pNote">No GamerHub account is connected.</div>
+      <h3>Connect your gaming accounts</h3>
+      <div class="row" id="plats"></div>
+    </div>
+    <div class="card">
+      <h3>Connected Library</h3>
+      <div class="meta">Games, playtime and available rank data.</div>
+      <div class="list" id="library"></div>
+      <div class="meta" id="libCount">0 connected</div>
+    </div>
+  </div>
+</section>
+
+<section id="community">
+  <h2>More Than Just Games.</h2>
+  <p class="sub">Your profile can become your own place to show your games, friends, groups, clips, achievements, rank and score.</p>
+  <div class="steps">
+    <div class="card"><h3>Your Profile</h3><div class="meta">Show your favorite games, rank, score and achievements.</div></div>
+    <div class="card"><h3>Your Clips</h3><div class="meta">Select your best gaming moments and build your personal clip collection.</div></div>
+    <div class="card"><h3>Your Community</h3><div class="meta">Add friends, create groups and share your favorite games together.</div></div>
+  </div>
+</section>
+
+<footer>© 2026 GAMERHUB · Play · Compete · Share</footer>
+
+<div class="modal" id="acctModal"><div class="box" role="dialog" aria-label="Create account">
+  <h2 style="font-size:26px">Create your GamerHub account</h2>
+  <div class="note">Your username is unique. Another GamerHub account cannot use it.</div>
+  <input id="uname" placeholder="Username" maxlength="20" aria-label="Username">
+  <input id="email" type="email" placeholder="Email (optional)" aria-label="Email">
+  <div class="note" id="acctErr" style="color:var(--b)"></div>
+  <div class="row"><button class="btn alt" data-close>Cancel</button><button class="btn" id="saveAcct">Create Account</button></div>
+  <button class="chip" id="googleBtn">Continue with Google</button>
+  <div class="note">Demo mode: account data stays in this browser. Real global username uniqueness, Google sign-in, Steam/Epic OAuth and live game stats require a secure backend.</div>
+</div></div>
+
+<div class="modal" id="groupModal"><div class="box" role="dialog" aria-label="Create group">
+  <h2 style="font-size:26px">Create a Group</h2>
+  <div class="note">Give your gaming group a name.</div>
+  <input id="gname" placeholder="Group name" maxlength="30" aria-label="Group name">
+  <div class="row"><button class="btn alt" data-close>Cancel</button><button class="btn" id="saveGroup">Create Group</button></div>
+</div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const G=`FPS / PvP:Valorant,Counter-Strike 2,Call of Duty: Warzone,Apex Legends,Overwatch 2,Rainbow Six Siege,Fortnite,PUBG,Halo Infinite,Battlefield 2042,Destiny 2,Escape from Tarkov,Team Fortress 2,Paladins,Splitgate,The Finals,Marvel Rivals,XDefiant,Deadlock,Warframe|MOBA / Strategy:League of Legends,Dota 2,Smite,Heroes of the Storm,Pokémon Unite,Mobile Legends,Honor of Kings,Wild Rift,StarCraft II,Age of Empires IV,Clash Royale,Teamfight Tactics,Hearthstone,Civilization VI,Total War: Warhammer III,Brawl Stars,Awesomenauts,Arena of Valor,Supervive,Predecessor|Fighting:Street Fighter 6,Tekken 8,Mortal Kombat 1,Super Smash Bros. Ultimate,Guilty Gear Strive,Dragon Ball FighterZ,Soulcalibur VI,Brawlhalla,Granblue Fantasy Versus,Killer Instinct,Virtua Fighter 5,Multiversus,Fatal Fury: City of the Wolves,Under Night In-Birth,BlazBlue Cross Tag,Skullgirls,Samurai Shodown,The King of Fighters XV,Injustice 2,Rivals of Aether|Sports / Racing:EA Sports FC 25,Rocket League,NBA 2K25,Madden NFL 25,Forza Horizon 5,Gran Turismo 7,F1 24,iRacing,Mario Kart 8 Deluxe,eFootball,NHL 25,Trackmania,Assetto Corsa,MotoGP 24,Riders Republic,WRC Generations,Tony Hawk's Pro Skater 1+2,Wii Sports,Golf With Your Friends,Lethal League Blaze|Other:Minecraft,Roblox,GTA Online,Among Us,Fall Guys,Genshin Impact,World of Warcraft,Final Fantasy XIV,Elden Ring,Baldur's Gate 3,Stardew Valley,Terraria,Palworld,Lethal Company,Helldivers 2,Sea of Thieves,Rust,ARK: Survival Evolved,Phasmophobia,Hades II`;
+const games=G.split('|').flatMap(c=>{const[k,v]=c.split(':');return v.split(',').map(n=>({n,c:k}))});
+const plat={'FPS / PvP':'PC · Console','MOBA / Strategy':'PC · Mobile','Fighting':'PC · Console','Sports / Racing':'PC · Console','Other':'PC · Console · Mobile'};
+const P=['Steam','Epic Games','Riot Games','Xbox','PlayStation','Discord'];
+const D={user:null,favs:[],friends:[],groups:[],clips:{},conn:[]};
+try{Object.assign(D,JSON.parse(localStorage.getItem('gh')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('gh',JSON.stringify(D))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let favOnly=false;
+
+function renderGames(){
+  const c=$('#cat').value,q=$('#q').value.toLowerCase();
+  const list=games.filter(g=>(!c||g.c===c)&&(!q||g.n.toLowerCase().includes(q))&&(!favOnly||D.favs.includes(g.n)));
+  $('#count').textContent=games.length+' games';
+  $('#favCount').textContent=D.favs.length+' favorite games';
+  $('#showFav').textContent=favOnly?'Show All':'Show Favorites';
+  $('#gameGrid').innerHTML=list.length?list.map(g=>{
+    const on=D.favs.includes(g.n),clip=D.clips[g.n];
+    return `<div class="card"><h3>${esc(g.n)}</h3><div class="meta">${g.c}<br>Play on: ${plat[g.c]}</div>${clip?`<a class="meta" href="${esc(clip)}" target="_blank" rel="noopener">▶ Your clip</a>`:''}
+    <div class="tools"><button class="chip fav ${on?'on':''}" data-fav="${esc(g.n)}" aria-pressed="${on}">★ ${on?'Favorited':'Favorite'}</button><button class="chip" data-share="${esc(g.n)}">Share</button><button class="chip" data-clip="${esc(g.n)}">Add clip</button></div></div>`}).join(''):'<div class="empty">No games to show.</div>';
+}
+function renderLists(){
+  $('#groupList').innerHTML=D.groups.length?D.groups.map((g,i)=>`<div class="item"><span>${esc(g)}</span><button class="chip" data-delg="${i}">Remove</button></div>`).join(''):'<div class="empty">No groups yet. Create one to start your team.</div>';
+  $('#friendList').innerHTML=D.friends.length?D.friends.map((f,i)=>`<div class="item"><span>${esc(f)}</span><button class="chip" data-delf="${i}">Remove</button></div>`).join(''):'<div class="empty">No friends added yet.</div>';
+  $('#plats').innerHTML=P.map(p=>`<button class="chip" data-plat="${p}">${D.conn.includes(p)?'✓ ':''}${p}</button>`).join('');
+  $('#library').innerHTML=D.conn.length?D.conn.map(p=>`<div class="item"><span>${p}</span><span class="meta">Demo data · connect a backend for live stats</span></div>`).join(''):'<div class="empty">Nothing connected yet.</div>';
+  $('#libCount').textContent=D.conn.length+' connected';
+}
+function renderUser(){
+  const u=D.user;
+  $('#who').textContent=u?u.name:'Guest · No account added';
+  $('#acctBtn').textContent=u?'Sign out':'Create Account';
+  $('#av').textContent=u?u.name[0].toUpperCase():'G';
+  $('#pName').textContent=u?u.name:'Guest';
+  $('#pSub').textContent=u?D.favs.length+' favorite games · '+D.friends.length+' friends · '+D.groups.length+' groups':'Create an account to build your profile.';
+  $('#pNote').textContent=u?'Demo account stored in this browser.':'No GamerHub account is connected.';
+}
+const all=()=>{renderGames();renderLists();renderUser();save()};
+const open=id=>{$(id).classList.add('open');const i=$(id).querySelector('input');i&&i.focus()};
+const close=()=>document.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'));
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-fav],[data-share],[data-clip],[data-delg],[data-delf],[data-plat],[data-close]');
+  if(e.target.classList.contains('modal'))close();
+  if(!t)return;
+  const d=t.dataset;
+  if(d.fav){const i=D.favs.indexOf(d.fav);i<0?D.favs.push(d.fav):D.favs.splice(i,1);all()}
+  else if(d.share){const txt='Check out '+d.share+' on GamerHub!';(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>t.textContent='Copied!').catch(()=>t.textContent='Copy failed')}
+  else if(d.clip){const u=prompt('Paste a link to your clip for '+d.clip+':');if(u&&/^https?:\/\//i.test(u)){D.clips[d.clip]=u;all()}else if(u)alert('Enter a link that starts with http:// or https://')}
+  else if(d.delg!==undefined){D.groups.splice(+d.delg,1);all()}
+  else if(d.delf!==undefined){D.friends.splice(+d.delf,1);all()}
+  else if(d.plat){const i=D.conn.indexOf(d.plat);i<0?D.conn.push(d.plat):D.conn.splice(i,1);all()}
+  else if(d.close!==undefined)close();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+$('#cat').onchange=$('#q').oninput=renderGames;
+$('#showFav').onclick=()=>{favOnly=!favOnly;renderGames()};
+$('#favLink').onclick=()=>{favOnly=true;renderGames()};
+$('#acctBtn').onclick=()=>{if(D.user){D.user=null;all()}else{$('#acctErr').textContent='';open('#acctModal')}};
+$('#saveAcct').onclick=()=>{
+  const n=$('#uname').value.trim();
+  if(!/^[\w.-]{3,20}$/.test(n)){$('#acctErr').textContent='Use 3–20 letters, numbers, dots, dashes or underscores.';return}
+  D.user={name:n,email:$('#email').value.trim()};close();all();
+};
+$('#googleBtn').onclick=()=>{$('#acctErr').textContent='Google sign-in needs a backend. Create a demo account with a username instead.'};
+$('#newGroup').onclick=()=>open('#groupModal');
+$('#saveGroup').onclick=()=>{const n=$('#gname').value.trim();if(!n)return;D.groups.push(n);$('#gname').value='';close();all()};
+$('#addFriend').onclick=()=>{const n=$('#friendIn').value.trim();if(n&&!D.friends.includes(n)){D.friends.push(n);$('#friendIn').value='';all()}};
+$('#friendIn').onkeydown=e=>{if(e.key==='Enter')$('#addFriend').click()};
+all();
+</script>
+</body>
+</html>
